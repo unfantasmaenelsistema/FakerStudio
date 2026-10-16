@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chat ficticio · FakerStudio</title>
+<meta name="description" content="Simulador de conversaciones de mensajería para formación y concienciación: crea capturas de chat ficticias, marcadas como tales, para enseñar a reconocer estafas y capturas falsas.">
+<link rel="icon" type="image/png" href="assets/ghost.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/core.css">
+<link rel="stylesheet" href="assets/chat.css">
+<script>(function(){var t=null;try{t=localStorage.getItem('fs_theme')}catch(e){}if(!t)t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';document.documentElement.setAttribute('data-theme',t)})();</script>
+</head>
+<body data-tool="chat" data-title-key="ch.title">
+<header class="fs-top" id="fsTop"></header>
+
+<main class="wrap">
+  <div class="notice warn">
+    <b data-t="ch.warnT">Solo para formación, humor o arte.</b>
+    <span data-t="ch.warnD">Las capturas llevan la marca «FICTICIO» para que nadie las tome por reales. No las uses para engañar, acosar ni suplantar a nadie: además de hacer daño, puede ser delito.</span>
+  </div>
+
+  <div class="ch-grid">
+    <!-- ───────── Editor ───────── -->
+    <div class="ch-editor">
+      <section class="panel">
+        <div class="panel-title"><span data-t="ch.tpl">Plantillas</span></div>
+        <div class="tpl-row">
+          <select class="select" id="tplSel" aria-label="Plantilla"></select>
+          <button class="btn ghost" id="tplBtn" type="button" data-t="ch.tplLoad">Cargar</button>
+        </div>
+        <p class="muted hint" id="tplHint"></p>
+      </section>
+
+      <section class="panel">
+        <div class="panel-title"><span data-t="ch.contact">Contacto</span></div>
+        <label class="check field"><input type="checkbox" id="groupOn"> <span data-t="ch.groupOn">Es un grupo</span></label>
+        <div class="field">
+          <label class="label" for="cName" id="cNameLbl" data-t="ch.cName">Nombre o número</label>
+          <input class="input" id="cName" type="text" maxlength="60" autocomplete="off">
+        </div>
+        <div class="field" id="statusField">
+          <label class="label" for="cStatus" data-t="ch.cStatus">Estado o última conexión</label>
+          <input class="input" id="cStatus" type="text" maxlength="60" autocomplete="off">
+        </div>
+        <div class="field" id="membersField" hidden>
+          <label class="label" for="gMembers" data-t="ch.members">Participantes (separados por comas)</label>
+          <input class="input" id="gMembers" type="text" maxlength="200" autocomplete="off">
+        </div>
+        <div class="field">
+          <span class="label" data-t="ch.avatar">Foto</span>
+          <div class="btns">
+            <label class="btn ghost small" for="avatarFile">📷 <span data-t="ch.avatarUp">Subir foto</span></label>
+            <input type="file" id="avatarFile" accept="image/*" hidden>
+            <button class="btn ghost small" id="avatarInit" type="button" data-t="ch.avatarInit">Iniciales</button>
+            <button class="btn ghost small" id="avatarNone" type="button" data-t="ch.avatarNone">Sin foto</button>
+          </div>
+        </div>
+        <a class="mono small-link" href="identidad.html" data-t="ch.fromPersona">↗ Generar un contacto ficticio</a>
+      </section>
+
+      <section class="panel">
+        <div class="panel-title"><span data-t="ch.messages">Mensajes</span> <span class="mono muted" id="msgCount"></span></div>
+        <div class="seg field" id="typeSeg" role="group">
+          <button type="button" data-v="in" aria-pressed="true" data-t="ch.tIn">← Recibido</button>
+          <button type="button" data-v="out" aria-pressed="false" data-t="ch.tOut">Enviado →</button>
+          <button type="button" data-v="date" aria-pressed="false" data-t="ch.tDate">Fecha</button>
+          <button type="button" data-v="system" aria-pressed="false" data-t="ch.tSys">Aviso</button>
+        </div>
+        <div class="field" id="senderField" hidden>
+          <label class="label" for="mSender" data-t="ch.sender">Quién lo escribe</label>
+          <select class="select" id="mSender"></select>
+        </div>
+        <div class="field">
+          <label class="label" for="mText" id="mTextLbl" data-t="ch.text">Texto</label>
+          <textarea class="textarea" id="mText" maxlength="2000"></textarea>
+        </div>
+        <div class="row2" id="metaRow">
+          <div class="field">
+            <label class="label" for="mTime" data-t="ch.time">Hora</label>
+            <input class="input" id="mTime" type="time">
+          </div>
+          <div class="field" id="statusSelField">
+            <label class="label" for="mStatus" data-t="ch.status">Estado</label>
+            <select class="select" id="mStatus">
+              <option value="sent" data-t="ch.sSent">✓ Enviado</option>
+              <option value="delivered" data-t="ch.sDelivered">✓✓ Entregado</option>
+              <option value="read" data-t="ch.sRead">✓✓ Leído (azul)</option>
+            </select>
+          </div>
+        </div>
+        <div class="btns">
+          <button class="btn" id="addBtn" type="button">+ <span data-t="ch.add">Añadir</span></button>
+          <button class="btn" id="saveBtn" type="button" hidden>✓ <span data-t="ch.save">Guardar cambios</span></button>
+          <button class="btn ghost" id="cancelBtn" type="button" hidden data-t="ch.cancel">Cancelar</button>
+        </div>
+        <p class="muted hint" data-t="ch.textHelp">Ctrl+Intro añade el mensaje. Los saltos de línea se respetan.</p>
+        <ol class="msg-list" id="msgList"></ol>
+      </section>
+
+      <section class="panel">
+        <div class="panel-title"><span data-t="ch.phone">Teléfono y aspecto</span></div>
+        <div class="row3">
+          <div class="field">
+            <label class="label" for="pTime" data-t="ch.pTime">Hora</label>
+            <input class="input" id="pTime" type="time">
+          </div>
+          <div class="field">
+            <label class="label" for="pBattery" data-t="ch.pBattery">Batería %</label>
+            <input class="input" id="pBattery" type="number" min="1" max="100" inputmode="numeric">
+          </div>
+          <div class="field">
+            <label class="label" for="pSignal" data-t="ch.pSignal">Cobertura</label>
+            <select class="select" id="pSignal"><option>4</option><option>3</option><option>2</option><option>1</option></select>
+          </div>
+        </div>
+        <label class="check field"><input type="checkbox" id="pWifi"> <span data-t="ch.pWifi">Wi-Fi conectado</span></label>
+        <div class="field">
+          <span class="label" data-t="ch.waTheme">Tema del chat</span>
+          <div class="seg" id="waThemeSeg" role="group">
+            <button type="button" data-v="dark" aria-pressed="true" data-t="ch.dark">Oscuro</button>
+            <button type="button" data-v="light" aria-pressed="false" data-t="ch.light">Claro</button>
+          </div>
+        </div>
+        <div class="field">
+          <label class="label" for="pInput" data-t="ch.pInput">Texto de la barra de escritura</label>
+          <input class="input" id="pInput" type="text" maxlength="60" autocomplete="off">
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-title"><span data-t="ch.file">Guardar y cargar</span></div>
+        <div class="btns">
+          <button class="btn ghost small" id="saveJson" type="button">⬇ <span data-t="ch.saveJson">Guardar conversación (.json)</span></button>
+          <label class="btn ghost small" for="loadJson">⬆ <span data-t="ch.loadJson">Abrir .json</span></label>
+          <input type="file" id="loadJson" accept="application/json,.json" hidden>
+          <button class="btn ghost small" id="clearBtn" type="button">🗑 <span data-t="ch.clear">Vaciar</span></button>
+        </div>
+        <p class="muted hint" data-t="ch.autosave">Todo se guarda solo en este navegador mientras editas.</p>
+      </section>
+    </div>
+
+    <!-- ───────── Vista previa ───────── -->
+    <div class="ch-preview">
+      <div class="tag muted" data-t="ch.preview">Vista previa (así saldrá la imagen)</div>
+      <div class="phone">
+        <div class="phone-screen" id="screen"></div>
+      </div>
+      <div class="btns center">
+        <button class="btn" id="pngBtn" type="button">⬇ <span data-t="ch.png">Descargar PNG</span></button>
+        <button class="btn ghost" id="copyImgBtn" type="button">📋 <span data-t="ch.copyImg">Copiar imagen</span></button>
+      </div>
+      <p class="muted hint center" data-t="ch.pngHelp">Se exporta a triple resolución. La marca «FICTICIO» forma parte de la imagen.</p>
+    </div>
+  </div>
+</main>
+
+<footer class="fs-foot" id="fsFoot"></footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" integrity="sha384-ZZ1pncU3bQe8y31yfZdMFdSpttDoPmOZg2wguVK9almUodir1PghgT0eY7Mrty8H" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="assets/core.js"></script>
+<script src="assets/chat.js"></script>
+</body>
+</html>

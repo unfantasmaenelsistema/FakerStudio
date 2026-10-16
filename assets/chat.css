@@ -1,0 +1,89 @@
+/* FakerStudio · simulador de chat */
+.ch-grid { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 14px; align-items: start; }
+@media (max-width: 900px) { .ch-grid { grid-template-columns: minmax(0, 1fr); } .ch-preview { order: -1; } }
+.ch-editor { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.ch-preview { position: sticky; top: 78px; display: flex; flex-direction: column; align-items: center; gap: 12px; min-width: 0; }
+@media (max-width: 900px) { .ch-preview { position: static; } }
+.hint { font-size: .9rem; margin-top: 8px; }
+.center { text-align: center; justify-content: center; }
+.tpl-row { display: flex; gap: 8px; }
+.tpl-row .select { flex: 1; }
+.small-link { font-size: .8rem; text-decoration: none; }
+.small-link:hover { text-decoration: underline; }
+label.btn { cursor: pointer; }
+
+.msg-list { list-style: none; margin-top: 12px; display: flex; flex-direction: column; gap: 6px; }
+.msg-item {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px; align-items: center;
+  background: var(--panel2); border: 1px solid var(--border); border-radius: 4px; padding: 6px 8px;
+}
+.msg-item.editing { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.msg-item .who { font-family: var(--mono); font-size: .7rem; letter-spacing: .5px; padding: 2px 6px; border-radius: 3px; background: var(--bg); color: var(--muted); white-space: nowrap; }
+.msg-item .who.out { color: var(--accent); }
+.msg-item .who.date, .msg-item .who.system { color: var(--warn); }
+.msg-item .txt { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .97rem; }
+.msg-item .txt small { color: var(--muted); font-family: var(--mono); margin-left: 6px; }
+.msg-item .acts { display: flex; gap: 2px; }
+.msg-item .acts button { background: transparent; border: 1px solid transparent; border-radius: 3px; color: var(--muted); padding: 2px 6px; font-size: .85rem; line-height: 1.2; }
+.msg-item .acts button:hover:not(:disabled) { color: var(--accent); border-color: var(--border); }
+.msg-item .acts button.del:hover { color: var(--danger); }
+.msg-empty { color: var(--muted); font-size: .95rem; padding: 6px 2px; }
+
+/* ───────── Teléfono ───────── */
+.phone {
+  width: 340px; max-width: 100%; padding: 12px; border-radius: 42px; background: #111; border: 2px solid #2b2b2b;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, .45), inset 0 0 0 1px #000;
+}
+[data-theme="light"] .phone { background: #1d1d1f; box-shadow: 0 16px 40px rgba(20, 30, 50, .25); }
+.phone-screen {
+  --wa-font: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Color Emoji', 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif;
+  position: relative; width: 100%; aspect-ratio: 9 / 19.5; border-radius: 32px; overflow: hidden;
+  display: flex; flex-direction: column; font-family: var(--wa-font); -webkit-font-smoothing: antialiased; line-height: 1.3;
+}
+.wa-status { display: flex; justify-content: space-between; align-items: center; padding: 8px 20px 4px 22px; font-size: 12.5px; font-weight: 600; flex-shrink: 0; }
+.wa-status .icons { display: flex; align-items: center; gap: 4px; }
+.wa-status .bat { display: flex; align-items: center; gap: 3px; font-size: 11.5px; }
+.wa-head { display: flex; align-items: center; gap: 6px; padding: 6px 8px 8px 4px; flex-shrink: 0; }
+.wa-head .back { width: 22px; height: 22px; flex-shrink: 0; }
+.wa-av { width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 15px; color: #fff; }
+.wa-av img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.wa-who { flex: 1; min-width: 0; padding-left: 4px; }
+.wa-who .n { font-size: 16px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wa-who .s { font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: .85; }
+.wa-head .acts { display: flex; gap: 14px; padding-right: 4px; flex-shrink: 0; }
+.wa-head .acts svg { width: 22px; height: 22px; }
+
+.wa-chat { flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; padding: 6px 10px 4px; gap: 2px; }
+.wa-row { display: flex; }
+.wa-row.out { justify-content: flex-end; }
+.wa-row.gap { margin-top: 6px; }
+.wa-bubble {
+  max-width: 82%; padding: 5px 8px 6px 9px; border-radius: 8px; font-size: 14.2px; box-shadow: 0 1px .5px rgba(11, 20, 26, .13);
+  white-space: pre-wrap; overflow-wrap: anywhere; position: relative;
+}
+.wa-row.in.first .wa-bubble { border-top-left-radius: 0; }
+.wa-row.out.first .wa-bubble { border-top-right-radius: 0; }
+.wa-sender { display: block; font-size: 12.8px; font-weight: 600; margin-bottom: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wa-meta { float: right; display: inline-flex; align-items: center; gap: 3px; margin: 6px 0 -4px 10px; font-size: 11px; line-height: 15px; white-space: nowrap; }
+.wa-meta svg { width: 16px; height: 16px; }
+.wa-center { display: flex; justify-content: center; margin: 6px 0; }
+.wa-chip { font-size: 12.2px; padding: 5px 10px; border-radius: 8px; text-align: center; max-width: 88%; white-space: pre-wrap; box-shadow: 0 1px .5px rgba(11, 20, 26, .13); }
+.wa-chip.system { font-size: 12px; line-height: 1.35; }
+
+.wa-input { display: flex; align-items: flex-end; gap: 6px; padding: 6px 8px 10px; flex-shrink: 0; }
+.wa-field { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; border-radius: 22px; padding: 9px 12px; font-size: 15px; }
+.wa-field .ph { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wa-field svg { width: 22px; height: 22px; flex-shrink: 0; }
+.wa-mic { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.wa-mic svg { width: 22px; height: 22px; }
+
+/* Marca de agua: forma parte de la pantalla, así que también sale en el PNG. */
+.wa-mark { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.wa-mark .big {
+  position: absolute; left: 50%; top: 46%; transform: translate(-50%, -50%) rotate(-32deg);
+  font: 900 54px/1 Arial, sans-serif; letter-spacing: 6px; white-space: nowrap; opacity: .12;
+}
+.wa-markfoot {
+  flex-shrink: 0; text-align: center; font: 700 9px/1 Arial, sans-serif; letter-spacing: .6px; padding: 4px 0 5px;
+  white-space: nowrap; overflow: hidden;
+}

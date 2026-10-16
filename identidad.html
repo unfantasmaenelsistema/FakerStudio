@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Identidades ficticias · FakerStudio</title>
+<meta name="description" content="Generador de identidades españolas ficticias y coherentes para pruebas de software y formación: DNI/NIE válidos, código postal de su provincia, teléfonos, correos de dominios reservados y exportación CSV, JSON y SQL.">
+<link rel="icon" type="image/png" href="assets/ghost.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/core.css">
+<link rel="stylesheet" href="assets/identidad.css">
+<script>(function(){var t=null;try{t=localStorage.getItem('fs_theme')}catch(e){}if(!t)t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';document.documentElement.setAttribute('data-theme',t)})();</script>
+</head>
+<body data-tool="persona" data-title-key="id.title">
+<header class="fs-top" id="fsTop"></header>
+
+<main class="wrap">
+  <div class="id-grid">
+    <aside class="panel" aria-labelledby="optTitle">
+      <div class="panel-title" id="optTitle" data-t="id.options">Opciones</div>
+
+      <div class="field">
+        <span class="label" data-t="id.sex">Sexo</span>
+        <div class="seg" id="sexSeg" role="group">
+          <button type="button" data-v="any" aria-pressed="true" data-t="id.sexAny">Cualquiera</button>
+          <button type="button" data-v="F" aria-pressed="false" data-t="id.sexF">Mujer</button>
+          <button type="button" data-v="M" aria-pressed="false" data-t="id.sexM">Hombre</button>
+        </div>
+      </div>
+
+      <div class="row2">
+        <div class="field">
+          <label class="label" for="ageMin" data-t="id.ageMin">Edad mínima</label>
+          <input class="input" id="ageMin" type="number" min="0" max="110" value="18" inputmode="numeric">
+        </div>
+        <div class="field">
+          <label class="label" for="ageMax" data-t="id.ageMax">Edad máxima</label>
+          <input class="input" id="ageMax" type="number" min="0" max="110" value="75" inputmode="numeric">
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="label" for="docType" data-t="id.doc">Documento</label>
+        <select class="select" id="docType">
+          <option value="DNI" data-t="id.docDni">DNI (nacionalidad española)</option>
+          <option value="NIE" data-t="id.docNie">NIE (residente extranjero)</option>
+          <option value="mix" data-t="id.docMix">Mezcla realista (~13 % NIE)</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label class="label" for="province" data-t="id.prov">Provincia</label>
+        <select class="select" id="province"></select>
+      </div>
+
+      <div class="row2 count-seed">
+        <div class="field">
+          <label class="label" for="count" data-t="id.count">Cantidad</label>
+          <input class="input" id="count" type="number" min="1" max="1000" value="1" inputmode="numeric">
+        </div>
+        <div class="field">
+          <label class="label" for="seed" data-t="id.seed">Semilla</label>
+          <div class="seed-row">
+            <input class="input" id="seed" type="text" maxlength="40" spellcheck="false" autocomplete="off" data-t-ph="id.seedPh" placeholder="aleatoria">
+            <button class="btn ghost small" id="seedNew" type="button" data-t-title="id.seedNew" title="Nueva semilla aleatoria" aria-label="Nueva semilla aleatoria">🎲</button>
+          </div>
+        </div>
+      </div>
+      <p class="muted hint" data-t="id.seedHelp">Con la misma semilla y las mismas opciones obtienes exactamente el mismo lote: útil para repetir pruebas.</p>
+
+      <button class="btn block" id="genBtn" type="button">⚡ <span data-t="id.generate">Generar</span></button>
+    </aside>
+
+    <section class="id-main">
+      <div class="panel" id="cardPanel">
+        <div class="panel-title">
+          <span data-t="id.result">Identidad</span>
+          <span class="mono muted" id="seedUsed"></span>
+        </div>
+        <div id="card"></div>
+        <div class="btns card-actions">
+          <button class="btn ghost small" id="copyBtn" type="button">📋 <span data-t="id.copy">Copiar ficha</span></button>
+          <button class="btn small" id="toChatBtn" type="button">💬 <span data-t="id.toChat">Usar como contacto en el chat</span></button>
+        </div>
+      </div>
+
+      <div class="panel" id="tablePanel" hidden>
+        <div class="panel-title">
+          <span id="tableTitle"></span>
+          <div class="btns">
+            <button class="btn ghost small" data-export="csv" type="button">CSV</button>
+            <button class="btn ghost small" data-export="json" type="button">JSON</button>
+            <button class="btn ghost small" data-export="sql" type="button">SQL</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="id-table">
+            <thead><tr>
+              <th>#</th><th data-t="id.colName">Nombre</th><th data-t="id.colDoc">Documento</th><th data-t="id.colBirth">Nacimiento</th>
+              <th data-t="id.colPhone">Móvil</th><th data-t="id.colEmail">Correo</th><th data-t="id.colPlace">Municipio</th>
+            </tr></thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+        <p class="muted hint" id="tableNote"></p>
+      </div>
+
+      <div class="btns" id="singleExport">
+        <button class="btn ghost small" data-export="csv" type="button">⬇ CSV</button>
+        <button class="btn ghost small" data-export="json" type="button">⬇ JSON</button>
+        <button class="btn ghost small" data-export="sql" type="button">⬇ SQL</button>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title" data-t="id.valTitle">Comprobar un DNI, NIE o CIF</div>
+        <div class="val-row">
+          <input class="input" id="valInput" type="text" maxlength="20" spellcheck="false" autocomplete="off" data-t-ph="id.valPh" placeholder="12345678Z, X1234567L, B12345674…">
+          <button class="btn ghost" id="valBtn" type="button" data-t="id.valBtn">Comprobar</button>
+        </div>
+        <p id="valOut" class="val-out" aria-live="polite"></p>
+        <p class="muted hint" data-t="id.valHelp">Solo comprueba la letra o el dígito de control; no consulta ninguna base de datos, así que no dice si el documento existe ni de quién es.</p>
+      </div>
+
+      <div class="notice warn">
+        <b data-t="id.warnT">Datos inventados, no de personas reales.</b>
+        <span data-t="id.warnD">Los nombres y apellidos son los más frecuentes del INE y los documentos tienen la letra de control correcta, así que un número puede coincidir por azar con el de alguien. Úsalos solo para probar formularios, rellenar bases de datos de prueba o preparar ejercicios, nunca para suplantar ni para registrarte en servicios reales. Los correos usan dominios reservados (example.com/.org/.net) que no pertenecen a nadie.</span>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer class="fs-foot" id="fsFoot"></footer>
+<script src="assets/core.js"></script>
+<script src="assets/persona.js"></script>
+<script src="assets/identidad.js"></script>
+</body>
+</html>
