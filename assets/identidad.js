@@ -30,6 +30,9 @@
       'id.warnD': 'Los nombres y apellidos son los más frecuentes del INE y los documentos tienen la letra de control correcta, así que un número puede coincidir por azar con el de alguien. Úsalos solo para probar formularios, rellenar bases de datos de prueba o preparar ejercicios, nunca para suplantar ni para registrarte en servicios reales. Los correos usan dominios reservados (example.com/.org/.net) que no pertenecen a nadie.',
       'id.sentToChat': 'Contacto preparado. Abriendo el chat…', 'id.exported': 'Descargado {f}',
       'id.ageFix': 'He ajustado las edades a {a}–{b}.',
+      'id.photo': 'Foto', 'id.photoArt': 'Ilustración', 'id.photoInit': 'Iniciales', 'id.avPng': 'Avatar PNG', 'id.avSvg': 'Avatar SVG',
+      'id.noArt': 'No se han podido cargar las ilustraciones; se usan las iniciales.',
+      'id.credit': 'Ilustraciones: <a href="https://www.openpeeps.com/" target="_blank" rel="noopener">Open Peeps</a> de Pablo Stanley (CC0), dibujadas en tu navegador con <a href="https://www.dicebear.com/" target="_blank" rel="noopener">DiceBear</a> (MIT). Encajan con el sexo y la edad de cada identidad: no son fotos de nadie.',
     },
     en: {
       'id.title': 'Fictitious identities',
@@ -55,10 +58,43 @@
       'id.warnD': 'First names and surnames are the most common ones according to Spain’s INE and documents carry a valid check letter, so a number may match someone’s by chance. Use them only to test forms, fill test databases or prepare exercises, never to impersonate anyone or sign up for real services. Emails use reserved domains (example.com/.org/.net) that belong to nobody.',
       'id.sentToChat': 'Contact ready. Opening the chat…', 'id.exported': 'Downloaded {f}',
       'id.ageFix': 'Ages adjusted to {a}–{b}.',
+      'id.photo': 'Photo', 'id.photoArt': 'Illustration', 'id.photoInit': 'Initials', 'id.avPng': 'Avatar PNG', 'id.avSvg': 'Avatar SVG',
+      'id.noArt': 'Illustrations could not be loaded; using initials instead.',
+      'id.credit': 'Illustrations: <a href="https://www.openpeeps.com/" target="_blank" rel="noopener">Open Peeps</a> by Pablo Stanley (CC0), drawn in your browser with <a href="https://www.dicebear.com/" target="_blank" rel="noopener">DiceBear</a> (MIT). They match each identity’s sex and age: they are nobody’s photo.',
     },
   });
 
   let sex = 'any';
+  let photo = 'art';
+  const artCache = new WeakMap();
+
+  function hasArt() { return photo === 'art' && !!(window.DiceBear && DiceBear.createAvatar); }
+  function art(p) {
+    let a = artCache.get(p);
+    if (!a) {
+      const av = DiceBear.createAvatar(DiceBear.openPeeps, Persona.avatarSpec(p));
+      a = { svg: av.toString(), uri: av.toDataUri() };
+      artCache.set(p, a);
+    }
+    return a;
+  }
+  function avatarInner(p) {
+    return hasArt() ? `<img src="${esc(art(p).uri)}" alt="">` : esc(p.iniciales);
+  }
+  // Rasteriza la ilustración (SVG) a PNG cuadrado: para el chat y para descargar.
+  function artPng(p, size) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const cv = document.createElement('canvas');
+        cv.width = cv.height = size;
+        cv.getContext('2d').drawImage(img, 0, 0, size, size);
+        try { resolve(cv.toDataURL('image/png')); } catch (e) { reject(e); }
+      };
+      img.onerror = () => reject(new Error('svg'));
+      img.src = art(p).uri;
+    });
+  }
   let batch = [];
   let current = null;
   let lastSeed = '';
@@ -98,7 +134,7 @@
     const card = $('card');
     card.innerHTML = `
       <div class="id-card">
-        <div class="id-avatar" style="background:${esc(p.color)}" aria-hidden="true">${esc(p.iniciales)}</div>
+        <div class="id-avatar" style="background:${esc(p.color)}" aria-hidden="true">${avatarInner(p)}</div>
         <div>
           <div class="id-name">${esc(p.nombreCompleto)}</div>
           <div class="id-sub">${esc(t('sex.' + p.sexo))} · ${esc(t('f.age', { n: p.edad }))} · ${esc(p.municipio)}</div>
@@ -112,6 +148,7 @@
             </div>`).join('')}
         </div>
       </div>`;
+    $('avPngBtn').hidden = $('avSvgBtn').hidden = !hasArt();
     card.querySelectorAll('[data-copy]').forEach(b => {
       if (!b.dataset.copy) { b.remove(); return; }
       b.onclick = async () => toast(t(await copyText(b.dataset.copy) ? 'id.copied' : 'id.copyFail'));
@@ -127,7 +164,7 @@
     const rows = batch.slice(0, MAX_ROWS);
     $('tbody').innerHTML = rows.map((p, i) => `
       <tr data-i="${i}" tabindex="0" aria-selected="${p === current}">
-        <td class="mono">${i + 1}</td><td>${esc(p.nombreCompleto)}</td><td class="mono">${esc(p.documento)}</td>
+        <td class="mono">${i + 1}</td><td class="av"><span style="background:${esc(p.color)}">${avatarInner(p)}</span></td><td>${esc(p.nombreCompleto)}</td><td class="mono">${esc(p.documento)}</td>
         <td class="mono">${esc(fmtDate(p.fechaNacimiento))}</td><td class="mono">${esc(p.movil)}</td>
         <td class="mono">${esc(p.email)}</td><td>${esc(p.municipio)} (${esc(p.provincia)})</td>
       </tr>`).join('');
@@ -167,7 +204,7 @@
     $('seedUsed').textContent = t('id.seedUsed', { s: seed });
     renderCard(batch[0]);
     renderTable();
-    store.setJson('id_opts', { sex, a: o.edadMin, b: o.edadMax, doc: o.documento, n });
+    store.setJson('id_opts', { sex, a: o.edadMin, b: o.edadMax, doc: o.documento, n, photo });
     store.set('id_prov', o.provincia);
   }
 
@@ -196,6 +233,14 @@
     out.className = 'val-out ' + (r.ok ? 'ok' : 'bad');
   }
 
+  function setPhoto(v) {
+    photo = v === 'initials' ? 'initials' : 'art';
+    $('photoSeg').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === photo));
+  }
+  function fileBase(p) {
+    return 'avatar-' + (p.nombre + '-' + p.apellido1).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  }
+
   function setSex(v) {
     sex = v;
     $('sexSeg').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === v));
@@ -210,16 +255,34 @@
       if (saved.b != null) $('ageMax').value = saved.b;
       if (['DNI', 'NIE', 'mix'].includes(saved.doc)) $('docType').value = saved.doc;
       if (saved.n) $('count').value = saved.n;
+      setPhoto(saved.photo);
     }
+    if (!(window.DiceBear && DiceBear.createAvatar)) { setPhoto('initials'); setTimeout(() => toast(t('id.noArt'), 4000), 300); }
+    $('photoSeg').querySelectorAll('button').forEach(b => {
+      b.onclick = () => {
+        setPhoto(b.dataset.v);
+        if (current) renderCard(current);
+        renderTable();
+        const o = store.json('id_opts', {}) || {}; o.photo = photo; store.setJson('id_opts', o);
+      };
+    });
+    $('avSvgBtn').onclick = () => { if (current && hasArt()) download(fileBase(current) + '.svg', art(current).svg, 'image/svg+xml'); };
+    $('avPngBtn').onclick = async () => {
+      if (!current || !hasArt()) return;
+      const url = await artPng(current, 512);
+      download(fileBase(current) + '.png', await (await fetch(url)).blob());
+    };
     $('sexSeg').querySelectorAll('button').forEach(b => { b.onclick = () => setSex(b.dataset.v); });
     $('seedNew').onclick = () => { $('seed').value = Persona.randomSeed(); };
     $('genBtn').onclick = generate;
     $('seed').addEventListener('keydown', e => { if (e.key === 'Enter') generate(); });
     $('count').addEventListener('keydown', e => { if (e.key === 'Enter') generate(); });
     $('copyBtn').onclick = async () => { if (current) toast(t(await copyText(asText(current)) ? 'id.copied' : 'id.copyFail')); };
-    $('toChatBtn').onclick = () => {
+    $('toChatBtn').onclick = async () => {
       if (!current) return;
-      store.setJson('pending_contact', { name: `${current.nombre} ${current.apellido1}`, initials: current.iniciales, color: current.color, phone: current.movil });
+      let avatar = null;
+      if (hasArt()) { try { avatar = await artPng(current, 192); } catch (e) { avatar = null; } }
+      store.setJson('pending_contact', { name: `${current.nombre} ${current.apellido1}`, initials: current.iniciales, color: current.color, phone: current.movil, avatar });
       toast(t('id.sentToChat'));
       setTimeout(() => { location.href = 'chat.html?contacto=1'; }, 400);
     };
