@@ -14,6 +14,8 @@
       'ch.cStatus': 'Estado o última conexión', 'ch.members': 'Participantes (separados por comas)',
       'ch.avatar': 'Foto', 'ch.avatarUp': 'Subir foto', 'ch.avatarInit': 'Iniciales', 'ch.avatarNone': 'Sin foto', 'ch.avatarBad': 'No se pudo leer la imagen',
       'ch.fromPersona': '↗ Generar un contacto ficticio',
+      'ch.aiFace': 'Conseguir una cara generada por IA ↗',
+      'ch.aiFaceHelp': 'Se abre en otra pestaña una cara inventada: guárdala (clic derecho → «Guardar imagen como…») y súbela con «Subir foto». Esa web no es nuestra y puede cambiar o dejar de funcionar.',
       'ch.messages': 'Mensajes', 'ch.tIn': '← Recibido', 'ch.tOut': 'Enviado →', 'ch.tDate': 'Fecha', 'ch.tSys': 'Aviso',
       'ch.sender': 'Quién lo escribe', 'ch.text': 'Texto', 'ch.textDate': 'Texto del separador (p. ej. HOY, AYER, 12 DE MARZO)', 'ch.textSys': 'Texto del aviso',
       'ch.time': 'Hora', 'ch.status': 'Estado', 'ch.sSent': '✓ Enviado', 'ch.sDelivered': '✓✓ Entregado', 'ch.sRead': '✓✓ Leído (azul)',
@@ -46,6 +48,8 @@
       'ch.cStatus': 'Status or last seen', 'ch.members': 'Members (comma separated)',
       'ch.avatar': 'Photo', 'ch.avatarUp': 'Upload photo', 'ch.avatarInit': 'Initials', 'ch.avatarNone': 'No photo', 'ch.avatarBad': 'Could not read the image',
       'ch.fromPersona': '↗ Generate a fictitious contact',
+      'ch.aiFace': 'Get an AI-generated face ↗',
+      'ch.aiFaceHelp': 'A made-up face opens in another tab: save it (right click → “Save image as…”) and upload it with “Upload photo”. That site is not ours and may change or stop working.',
       'ch.messages': 'Messages', 'ch.tIn': '← Received', 'ch.tOut': 'Sent →', 'ch.tDate': 'Date', 'ch.tSys': 'Notice',
       'ch.sender': 'Who writes it', 'ch.text': 'Text', 'ch.textDate': 'Separator text (e.g. TODAY, YESTERDAY, 12 MARCH)', 'ch.textSys': 'Notice text',
       'ch.time': 'Time', 'ch.status': 'Status', 'ch.sSent': '✓ Sent', 'ch.sDelivered': '✓✓ Delivered', 'ch.sRead': '✓✓ Read (blue)',
@@ -577,8 +581,10 @@
     if (pending && /[?&]contacto=1/.test(location.search)) {
       S.contact.name = str(pending.name, 60);
       S.contact.status = t('wa.online');
-      S.contact.avatarMode = 'initials';
       if (/^#[0-9a-f]{6}$/i.test(pending.color || '')) S.contact.color = pending.color;
+      if (typeof pending.avatar === 'string' && IMG_RE.test(pending.avatar) && pending.avatar.length < 600000) {
+        S.contact.avatar = pending.avatar; S.contact.avatarMode = 'photo';
+      } else S.contact.avatarMode = 'initials';
       S.group.on = false;
       setTimeout(() => toast(t('ch.contactIn')), 300);
       history.replaceState(null, '', location.pathname);

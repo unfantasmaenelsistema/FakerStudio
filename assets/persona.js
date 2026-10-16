@@ -342,6 +342,48 @@
     };
   }
 
+  // ───────────────────────── Avatar ilustrado (Open Peeps vía DiceBear) ─────────────────────────
+  // Solo elige las piezas; quien dibuja es DiceBear. Sale de un generador propio a partir de la
+  // persona, así que no altera la secuencia del lote y la misma semilla da siempre el mismo dibujo.
+  const PEINADOS = {
+    F: ['bangs', 'bangs2', 'bun', 'bun2', 'buns', 'long', 'longBangs', 'longCurly', 'medium1', 'medium2', 'medium3', 'mediumBangs', 'mediumBangs2', 'mediumBangs3', 'mediumStraight', 'afro', 'short3'],
+    M: ['flatTop', 'short1', 'short2', 'short3', 'short4', 'short5', 'pomp', 'shaved1', 'shaved2', 'twists2', 'grayShort', 'hatBeanie'],
+    Fmayor: ['grayBun', 'grayMedium', 'short3', 'medium1', 'bangs', 'bun'],
+    Mmayor: ['grayShort', 'short1', 'short2', 'noHair1', 'noHair2', 'noHair3'],
+  };
+  // Solo estos peinados admiten color de pelo (el resto va siempre en negro), así que las canas salen de aquí.
+  // noHair1 y noHair2 son calvos: valen para cualquier edad avanzada.
+  const CANOSOS = { F: ['grayBun', 'grayMedium', 'bangs', 'mediumBangs2'], M: ['grayShort', 'short4', 'noHair3', 'noHair1', 'noHair2'] };
+  const PELO = ['2c1b18', '2c1b18', '4a312c', '4a312c', '724133', 'a55728', 'b58143', 'd6b370', 'c93305'];
+  const CANAS = ['e8e1e1', 'ecdcbf'];
+  const PIEL = [['ffdbb4', 38], ['edb98a', 40], ['d08b5b', 15], ['ae5d29', 4], ['694d3d', 3]];
+  const PIEL_NIE = [['ffdbb4', 15], ['edb98a', 35], ['d08b5b', 30], ['ae5d29', 12], ['694d3d', 8]];
+  const CARAS = ['smile', 'calm', 'cute', 'serious', 'smileBig', 'explaining', 'solemn', 'driven'];
+  const GAFAS = ['glasses', 'glasses2', 'glasses3', 'glasses4', 'glasses5'];
+
+  function avatarSpec(p) {
+    const r = makeRng('avatar|' + p.documento + '|' + p.nombreCompleto);
+    const mayor = p.edad >= 62;
+    const canas = mayor ? r.chance(0.85) : p.edad >= 48 ? r.chance(0.35) : false;
+    const lista = canas ? CANOSOS[p.sexo] : PEINADOS[p.sexo + (mayor ? 'mayor' : '')];
+    // Con canas no hay barba: casi todas las barbas de Open Peeps se dibujan en un color fijo oscuro.
+    const barba = !canas && p.sexo === 'M' && p.edad >= 20 && r.chance(p.edad >= 30 ? 0.35 : 0.2);
+    const gafas = r.chance(p.edad >= 45 ? 0.5 : 0.15);
+    return {
+      seed: p.documento,
+      head: [r.pick(lista)],
+      headContrastColor: [canas ? r.pick(CANAS) : r.pick(PELO)],
+      skinColor: [r.weighted(p.documentoTipo === 'NIE' ? PIEL_NIE : PIEL, x => x[1])[0]],
+      face: [mayor && r.chance(0.4) ? 'old' : r.pick(CARAS)],
+      facialHair: barba ? [r.pick(['chin', 'full', 'full2', 'full3', 'full4', 'goatee1', 'goatee2', 'moustache1', 'moustache2', 'moustache3', 'moustache7'])] : [],
+      facialHairProbability: barba ? 100 : 0,
+      accessories: gafas ? [r.pick(GAFAS)] : [],
+      accessoriesProbability: gafas ? 100 : 0,
+      maskProbability: 0,
+      backgroundColor: [p.color.replace('#', '')],
+    };
+  }
+
   function lote(seed, n, opts) {
     const rng = makeRng(seed);
     const out = [];
@@ -372,7 +414,7 @@
     return create + lista.map((p, i) => `INSERT INTO ${tabla} (id, ${cols.join(', ')}) VALUES (${i + 1}, ${CAMPOS.map(c => v(p[c])).join(', ')});`).join('\n') + '\n';
   }
 
-  const api = { makeRng, randomSeed, persona, lote, validar, letraDNI, PROVINCIAS, APELLIDOS, NOMBRES, CAMPOS, aCSV, aJSON, aSQL, formatoTelefono };
+  const api = { makeRng, randomSeed, persona, lote, avatarSpec, validar, letraDNI, PROVINCIAS, APELLIDOS, NOMBRES, CAMPOS, aCSV, aJSON, aSQL, formatoTelefono };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.Persona = api;
 })(typeof window !== 'undefined' ? window : this);
